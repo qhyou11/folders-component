@@ -5,7 +5,7 @@ class HomeCtrl {
 
     let componentManager = new window.ComponentManager([], () => {
       // on ready
-      $scope.platform = componentManager.platform;
+      $rootScope.platform = componentManager.platform;
     });
 
     let delimiter = ".";
@@ -132,13 +132,8 @@ class HomeCtrl {
     $scope.createTag = function(tag) {
       var title = tag.content.title;
       if(title.startsWith("![")) {
-        // Create smart tag
         /*
-        !["Untagged", "tags.length", "=", 0]
-        !["B-tags", "tags", "includes", ["title", "startsWith", "b"]]
-        !["Foo Notes", "title", "startsWith", "Foo"]
-        !["Archived", "archived", "=", true]
-        !["Pinned", "pinned", "=", true]
+        Create smart tag. Examples:
         !["Not Pinned", "pinned", "=", false]
         !["Last Day", "updated_at", ">", "1.days.ago"]
         !["Long", "text.length", ">", 500]
@@ -183,7 +178,6 @@ class HomeCtrl {
     }
 
     $scope.selectTag = function(tag, multiSelect) {
-
       let isSmartTag = tag.content_type == smartTagContentType;
       // Multi selection for smart tags is not possible.
       if(isSmartTag) {
@@ -228,7 +222,7 @@ class HomeCtrl {
         $scope.setSelectedForTag($scope.selectedTag, false);
       }
 
-      if($scope.selectedTag === tag && !tag.master) {
+      if($scope.selectedTag === tag && !tag.master && !tag.content.isSystemTag) {
         tag.editing = true;
       }
 
@@ -269,7 +263,7 @@ class HomeCtrl {
     componentManager.streamItems(["Tag", smartTagContentType], (newTags) => {
       $timeout(() => {
         var allTags = $scope.masterTag ? $scope.masterTag.rawTags : [];
-        var smartTags = $scope.smartMasterTag ? $scope.smartMasterTag.rawTags : [];
+        var smartTags = $scope.smartMasterTag ? $scope.smartMasterTag.rawTags : SNSmartTag.systemSmartTags();
         for(var tag of newTags) {
           var isSmartTag = tag.content_type == smartTagContentType;
           var arrayToUse = isSmartTag ? smartTags : allTags;
@@ -291,7 +285,7 @@ class HomeCtrl {
             if($scope.selectOnLoad && $scope.selectOnLoad.uuid == tag.uuid)  {
               $scope.selectOnLoad = null;
               $scope.selectTag(tag);
-            } else if(existing && $scope.selectedTag.uuid == existing.uuid) {
+            } else if(existing && $scope.selectedTag && $scope.selectedTag.uuid == existing.uuid) {
               // Don't call $scope.selectTag(existing) as this will double select a tag, which will enable editing for it.
               $scope.setSelectedForTag(existing, true);
             }

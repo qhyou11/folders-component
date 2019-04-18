@@ -104,6 +104,7 @@ class TagTree {
         generation++;
         parent = parent.parent;
       }
+
       return generation;
     }
 
@@ -114,13 +115,9 @@ class TagTree {
 
       // is newly creating tag
       if(!tag.uuid) {
-        return "default";
+        return "neutral";
       }
 
-      // Newly creating tags don't have client data
-      if(tag.clientData && tag.clientData.collapsed) {
-        return "warning";
-      }
 
       let gen = $scope.generationForTag(tag);
       var circleClass = {
@@ -128,10 +125,19 @@ class TagTree {
         1: "info",
         2: "success",
         3: "danger",
-        4: "warning"
+        4: "warning",
       }[gen];
 
-      return circleClass ? circleClass : "default";
+      if(!circleClass) {
+        circleClass = "neutral";
+      }
+
+      // Newly creating tags don't have client data
+      if(tag.clientData && tag.clientData.collapsed) {
+        circleClass += " no-bg";
+      }
+
+      return circleClass;
     }
 
   }
